@@ -1,9 +1,16 @@
 //Handle business logic
 const prisma = require("../db");
+const {
+  findProducts,
+  findProductById,
+  insertProduct,
+  deleteProduct,
+  patchProduct,
+} = require("./ProductRepository");
 
 class ProductService {
   static getAllProducts = async () => {
-    const products = await prisma.product.findMany();
+    const products = await findProducts();
     return products;
   };
 
@@ -11,9 +18,7 @@ class ProductService {
     if (!id || typeof id !== "number") {
       throw Error("No Valid ID");
     }
-    const product = await prisma.product.findUnique({
-      where: { id: parseInt(id) },
-    });
+    const product = await findProductById(parseInt(id));
     if (!product) {
       throw Error("Product not found");
     }
@@ -21,38 +26,19 @@ class ProductService {
   };
 
   static createProduct = async (newProductData) => {
-    const product = await prisma.product.create({
-      data: {
-        name: newProductData.name,
-        description: newProductData.description,
-        image: newProductData.image,
-        price: newProductData.price,
-      },
-    });
+    const product = await insertProduct(newProductData);
     return product;
   };
 
   static deleteProductById = async (id) => {
     await this.getProductById(id);
 
-    await prisma.product.delete({
-      where: {
-        id: parseInt(id),
-      },
-    });
+    await deleteProduct(id);
   };
 
   static patchProductById = async (id, ProductData) => {
     await this.getProductById(id);
-    const product = await prisma.product.update({
-      where: { id: parseInt(id) },
-      data: {
-        name: ProductData.name,
-        description: ProductData.description,
-        image: ProductData.image,
-        price: ProductData.price,
-      },
-    });
+    const product = await patchProduct(id, ProductData);
     return product;
   };
   static putProductById = async (id, ProductData) => {
